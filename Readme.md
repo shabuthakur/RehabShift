@@ -411,3 +411,137 @@ class GetPublicPackages(APIView):
             return Response({"status":"Error","message":str(e)},status=400)
 
 ```
+
+## Employee Serializers
+```python 
+class PackageSerializer(serializers.ModelSerializer):
+  class Meta:
+    model=Package
+    fields=['id','package_name','description','amount','is_public','public_doctor','thumbnail','created_by','updated_by','doctor']
+    extra_kwargs={"package_name":{"required":True, "allow_null":False},"description":{"required":True, "allow_null":False},\
+        "amount":{"required":True, "allow_null":False}, "thumbnail":{"required":True, "allow_null":False},\
+            "created_by":{"write_only":True},"updated_by":{"write_only":True},"doctor":{"write_only":True}}
+
+class EnrollmentSerializer(serializers.ModelSerializer):
+    package_name=serializers.StringRelatedField(source='package.package_name')
+    package_thumbnail=serializers.StringRelatedField(source='package.thumbnail.url')
+    id = serializers.StringRelatedField(source='package.id')
+    amount = serializers.StringRelatedField(source='package.amount')
+
+    class Meta:
+        model=Enrollment
+        fields=['id','package_name','package_thumbnail','amount']
+
+class ExerciseSerializer(serializers.ModelSerializer):
+    tag=serializers.StringRelatedField(many=True)
+    category=serializers.StringRelatedField()
+    video_url=serializers.StringRelatedField(source='video.video.url')
+    class Meta:
+        model=Exercise
+        fields=['name','category','video_url','description','tag']
+
+
+######
+class EmployeeProfileWithHealthStatusSerializer(serializers.ModelSerializer):
+    
+    class Meta:
+        model = Profile
+        fields = ['id', 'employee_code', 'name', 'dob', 'primary', 'gender', 'profile_pic', 'email', 'phone_number', 'address', 'created_on',  'health_status']
+        extra_kwargs = {'employee_code': {'required': False},}
+        
+
+
+
+class PrescriptionSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Prescription 
+        fields = ('prescription',)
+
+    def get_appointment_title(self, obj):
+        return obj.appointment.appointment_title
+
+    def get_appointment_id(self, obj):
+        return obj.appointment.appointment_id
+
+class AppointmentSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Appointment
+        fields = ['appointment_title','appointment_id']
+
+
+class PackageExerciseSerializer(serializers.ModelSerializer):
+  video_url= serializers.StringRelatedField(source='exercise.video.video.url')
+  exercise_name=serializers.StringRelatedField(source='exercise.name')
+  thumbnail=serializers.StringRelatedField(source="exercise.video.thumbnail.url")
+  description=serializers.StringRelatedField(source="exercise.video.description")
+  class Meta:
+    model=Package_Exercise
+    fields=['exercise_name','video_url','repetition','number_of_sets','rest_time','thumbnail','description']
+
+class MyDoctorSerializer(serializers.ModelSerializer):
+    doctor_id = serializers.StringRelatedField(source='doctor.id')
+    doctor_name = serializers.StringRelatedField(source='doctor.name')
+    qualification = serializers.StringRelatedField(source='doctor.degree')
+    phone_number = serializers.StringRelatedField(source='doctor.phone_number')
+    profile_pic = serializers.SerializerMethodField()
+    experience = serializers.StringRelatedField(source='doctor.experience')
+    class Meta:
+        model = OrganisationDoctor
+        fields = ['doctor_id','doctor_name','qualification','phone_number','profile_pic','experience']
+
+    def get_profile_pic(self,obj):
+        try:
+            url = obj.doctor.profile_pic.url
+            return url 
+        except:
+            url = ""
+            return url 
+
+class MobileSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = TopImages
+        fields = ['mobile_image']
+class WebSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = TopImages
+        fields = ['web_image']
+
+class CategorySerializer(serializers.ModelSerializer):
+    class Meta:
+        model=Category
+        fields=['id','title']
+
+class PackageSerializer1(serializers.ModelSerializer):
+  class Meta:
+    model=Package
+    fields=['id','package_name','description','amount','thumbnail']
+
+class PackagesAccordingToCategorySerializer(serializers.ModelSerializer):
+    id=serializers.StringRelatedField(source='package.id')
+    package=serializers.StringRelatedField()
+    thumbnail=serializers.StringRelatedField(source='package.thumbnail.url')
+    amount=serializers.StringRelatedField(source='package.amount')
+    description=serializers.StringRelatedField(source='package.description')
+    class Meta:
+        model=Package_Exercise
+        fields=['id','package','thumbnail','amount','description']
+
+class RecommendedPackagesbyDoctorSerializer(serializers.ModelSerializer):
+    thumbnail =serializers.StringRelatedField(source='package.thumbnail.url')
+    package_name=serializers.StringRelatedField(source='package.package_name')
+    package_description=serializers.StringRelatedField(source='package.description')
+    doctor_name=serializers.StringRelatedField(source='doctor.name')
+    package_id = serializers.StringRelatedField(source='package.id')
+    amount = serializers.StringRelatedField(source='package.amount')
+
+    class Meta:
+        model= DoctorRecommended
+        fields=['package_id','package_name','package_description','doctor_name','thumbnail','amount']
+
+class PackageWithExercisesSerializer(serializers.ModelSerializer):
+    
+    class Meta:
+        model = Package_Exercise
+        fields = ['package']
+
+```
